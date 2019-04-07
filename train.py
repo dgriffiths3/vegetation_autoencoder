@@ -5,8 +5,8 @@ import tensorflow_datasets as tfds
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-from vegetation_model import VegClassModel
-from dataset_loader import get_image_ds
+from utils.vegetation_model import VegClassModel
+from utils.dataset_loader import get_image_ds
 
 def plot_images(label, prediction):
 	plt.figure()
@@ -18,7 +18,7 @@ def plot_images(label, prediction):
 	plt.title('generated')
 	plt.show()
 
-#@tf.function
+@tf.function
 def train_step(step, model, loss_object, optimizer, image, label, train_loss, train_accuracy):
 
 	with tf.GradientTape() as tape:
