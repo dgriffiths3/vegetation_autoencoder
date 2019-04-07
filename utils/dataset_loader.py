@@ -43,12 +43,15 @@ def preprocess_image(image):
 	image /= 255.0
 	return image
 
+
 def load_and_preprocess_image(path):
 	image = tf.io.read_file(path)
 	return preprocess_image(image)
 
+
 def change_range(image):
 	return 2*image-1
+
 
 def get_image_ds(image_dir, batch_size):
 

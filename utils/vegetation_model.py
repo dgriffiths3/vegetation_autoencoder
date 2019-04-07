@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPool2D, UpSampling2D, Conv2DTranspose
 from tensorflow.keras import Model
 
+
 class VegClassModel(Model):
 	def __init__(self):
 		# Model architecture definition
@@ -68,6 +69,7 @@ class VegClassModel(Model):
 							  activation='sigmoid',
 							  padding='same',
 							  kernel_initializer=self.kernel_initializer)
+
 
 	def call(self, input):
 
