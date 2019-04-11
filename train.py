@@ -5,10 +5,10 @@ import tensorflow_datasets as tfds
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-from utils.vegetation_model import VegClassModel
+from utils.vegetation_model import VegClassModel, VegClassModelFC
 from utils.dataset_loader import get_image_ds
 
-def plot_images(label, prediction):
+def plot_images(step, label, prediction):
 	plt.figure()
 	plt.subplot(121)
 	plt.imshow(label)
@@ -16,7 +16,7 @@ def plot_images(label, prediction):
 	plt.subplot(122)
 	plt.imshow(prediction)
 	plt.title('generated')
-	plt.show()
+	plt.savefig('./plots/step_'+str(step)+'.png')
 
 
 def load_dataset(dir, epochs, batch_size):
@@ -29,7 +29,7 @@ def load_dataset(dir, epochs, batch_size):
 	return image_feed
 
 
-@tf.function
+#@tf.function
 def train_step(step, model, loss_object, optimizer, image, label, train_loss):
 
 	with tf.GradientTape() as tape:
@@ -39,8 +39,9 @@ def train_step(step, model, loss_object, optimizer, image, label, train_loss):
 		# Alternative loss function
 		#loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=label, logits=predictions)
 
-	#if step % 100 == 0:
-	#	plot_images(label[0], predictions[0])
+	plot_freq = 5
+	if step % plot_freq == 0:
+		plot_images(step, label[0], predictions[0])
 
 	gradients = tape.gradient(loss, model.trainable_variables)
 
@@ -59,7 +60,7 @@ def train(image_dir):
 	log_freq = 1
 	save_freq = 1000
 
-	model = VegClassModel()
+	model = VegClassModelFC()
 	image_feed = load_dataset(image_dir, epochs, batch_size)
 
 	loss_object = tf.keras.losses.MeanSquaredError()

@@ -6,7 +6,7 @@ import pathlib
 import matplotlib.pyplot as plt
 
 
-def split_images(input_dir, output_dir, image_size=[600, 600]):
+def split_images(input_dir, output_dir, image_size=[512, 512]):
 
 	data_root = pathlib.Path(input_dir)
 	all_image_paths = list(data_root.glob('*'))
@@ -39,7 +39,7 @@ def split_images(input_dir, output_dir, image_size=[600, 600]):
 
 def preprocess_image(image):
 	image = tf.image.decode_jpeg(image, channels=3)
-	image = tf.image.resize(image, [384, 512])
+	image = tf.image.resize(image, [512, 512])
 	image /= 255.0
 	return image
 
