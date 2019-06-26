@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
+import os
 
-import tensorflow_datasets as tfds
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
@@ -17,6 +17,7 @@ def plot_images(step, label, prediction):
 	plt.imshow(prediction)
 	plt.title('generated')
 	plt.savefig('./plots/step_'+str(step)+'.png')
+	plt.close()
 
 
 def load_dataset(dir, epochs, batch_size):
@@ -28,20 +29,23 @@ def load_dataset(dir, epochs, batch_size):
 	image_feed = iter(ds.take(batches+1))
 	return image_feed
 
-
-#@tf.function
+@tf.function
 def train_step(step, model, loss_object, optimizer, image, label, train_loss):
 
 	with tf.GradientTape() as tape:
 
 		predictions = model(image)
 		loss = loss_object(label, predictions)
-		# Alternative loss function
-		#loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=label, logits=predictions)
 
-	plot_freq = 5
+	plot_freq = 1
+
+	"""
 	if step % plot_freq == 0:
-		plot_images(step, label[0], predictions[0])
+		gt = (((label[0].numpy()+1)/2)*255).astype(int)
+		pred = (((predictions[0].numpy()+1)/2)*255).astype(int)
+		print('Decoder unique pixels: {:}'.format(np.unique(pred).shape[0]))
+		plot_images(step, gt, pred)
+	"""
 
 	gradients = tape.gradient(loss, model.trainable_variables)
 
@@ -54,11 +58,11 @@ def train_step(step, model, loss_object, optimizer, image, label, train_loss):
 
 def train(image_dir):
 
-	batch_size = 8
-	epochs = 1
-	lr = 0.0001
+	batch_size = 64
+	epochs = 10
+	lr = 0.00001
 	log_freq = 1
-	save_freq = 1000
+	save_freq = 100
 
 	model = VegClassModelFC()
 	image_feed = load_dataset(image_dir, epochs, batch_size)
@@ -68,7 +72,6 @@ def train(image_dir):
 	train_loss = tf.keras.metrics.Mean(name='train_loss')
 	test_loss = tf.keras.metrics.Mean(name='test_loss')
 
-	epochs = 5
 	step = 0
 
 	next(image_feed)
@@ -85,15 +88,22 @@ def train(image_dir):
 		if step % log_freq == 0 or step == 1:
 			tf.summary.scalar('loss', loss, step=optimizer.iterations)
 		if step % save_freq == 0:
-			tf.saved_model.save(model, os.path.join(log_dir, 'models', 'model_'+str(step)+'.ckpt'))
+			#model.save_weights(os.path.join(log_dir, 'logs', 'models', 'model_'+str(step)+'.ckpt'))
+			save_path = (os.path.join(log_dir, 'logs', 'models', 'model_'+str(step)+'.ckpt'))
+			model.save_weights(save_path)
 
 
 if __name__ == '__main__':
 
-	image_dir = './split_images'
+	#image_dir = './split_images'
+	image_dir = './data/split_images_small'
 	log_dir = '.'
 
-	train_summary_writer = tf.summary.create_file_writer(log_dir+'/logs')
+	train_summary_writer = tf.summary.create_file_writer(log_dir+'/logs/train')
+
+	if os.path.isdir(os.path.join(log_dir, 'logs', 'models')) == False:
+		os.mkdir(os.path.join(log_dir, 'logs', 'models'))
+
 
 	with train_summary_writer.as_default():
 		train(image_dir)

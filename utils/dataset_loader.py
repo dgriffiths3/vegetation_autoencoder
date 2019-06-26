@@ -6,7 +6,7 @@ import pathlib
 import matplotlib.pyplot as plt
 
 
-def split_images(input_dir, output_dir, image_size=[512, 512]):
+def split_images(input_dir, output_dir, image_size=[128, 128]):
 
 	data_root = pathlib.Path(input_dir)
 	all_image_paths = list(data_root.glob('*'))
@@ -39,7 +39,7 @@ def split_images(input_dir, output_dir, image_size=[512, 512]):
 
 def preprocess_image(image):
 	image = tf.image.decode_jpeg(image, channels=3)
-	image = tf.image.resize(image, [512, 512])
+	image = tf.image.resize(image, [128, 128])
 	image /= 255.0
 	return image
 
@@ -53,19 +53,18 @@ def change_range(image):
 	return 2*image-1
 
 
-def get_image_ds(image_dir, batch_size):
+def get_image_ds(image_dir, batch_size, ext='JPG', shuffle=True):
 
 	AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 	data_root = pathlib.Path(image_dir)
-	all_image_paths = list(data_root.glob('*.JPG'))
+	all_image_paths = list(data_root.glob('*.'+ext))
 	all_image_paths = [str(path) for path in all_image_paths]
-	random.shuffle(all_image_paths)
 
 	path_ds = tf.data.Dataset.from_tensor_slices(all_image_paths)
 	image_ds = path_ds.map(load_and_preprocess_image, num_parallel_calls=AUTOTUNE)
 
-	image_ds = image_ds.shuffle(buffer_size=len(all_image_paths))
+	image_ds = image_ds.shuffle(buffer_size=len(all_image_paths)) if shuffle == True else image_ds
 	image_ds = image_ds.repeat()
 	image_ds = image_ds.batch(batch_size)
 	image_ds = image_ds.prefetch(buffer_size=AUTOTUNE)
@@ -76,4 +75,4 @@ def get_image_ds(image_dir, batch_size):
 
 if __name__ == '__main__':
 
-	split_images('./images', './split_images')
+	split_images('./images', './split_images_small')
